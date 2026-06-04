@@ -24,7 +24,7 @@ io.on('connection', (socket) => {
         playersReadyCount++;
 
         if(playersReadyCount === 2) {
-            // broadcast game start   
+            io.emit('startGame', socket.io);
         }
     });
 });
