@@ -1,3 +1,5 @@
+// const { useCallback } = require("react");
+
 // Canvas Related 
 const canvas = document.createElement('canvas');
 const context = canvas.getContext('2d');
@@ -187,6 +189,7 @@ function animate() {
 function startGame() {
   createCanvas();
   renderIntro();
+  socket.emit('ready');
   
   paddleIndex = 0;
   window.requestAnimationFrame(animate);
@@ -206,3 +209,7 @@ function startGame() {
 
 // On Load
 startGame();
+
+socket.on('connect', () => {
+  console.log(`Connected as ${socket.id}`);
+});
