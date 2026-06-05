@@ -1,10 +1,8 @@
-// const { useCallback } = require("react");
-
 // Canvas Related 
 const canvas = document.createElement('canvas');
 const context = canvas.getContext('2d');
 const socket = io('http://localhost:3000');
-
+let isReferee = false;
 let paddleIndex = 0;
 
 let width = 500;
@@ -27,7 +25,6 @@ let ballDirection = 1;
 // Speed
 let speedY = 2;
 let speedX = 0;
-// let computerSpeed = 4;
 
 // Score for Both Players
 let score = [ 0, 0 ];
@@ -150,35 +147,14 @@ function ballBoundaries() {
       trajectoryX[1] = ballX - (paddleX[1] + paddleDiff);
       speedX = trajectoryX[1] * 0.3;
     } else {
-      // Reset Ball, Increase Computer Difficulty, add to Player Score
-      // if (computerSpeed < 6) {
-      //   computerSpeed += 0.5;
-      // }
       ballReset();
       score[0]++;
     }
   }
 }
 
-// // Computer Movement
-// function computerAI() {
-//   if (playerMoved) {
-//     if (paddleX[1] + paddleDiff < ballX) {
-//       paddleX[1] += computerSpeed;
-//     } else {
-//       paddleX[1] -= computerSpeed;
-//     }
-//     if (paddleX[1] < 0) {
-//       paddleX[1] = 0;
-//     } else if (paddleX[1] > (width - paddleWidth)) {
-//       paddleX[1] = width - paddleWidth;
-//     }
-//   }
-// }
-
 // Called Every Frame
 function animate() {
-  // computerAI();
   ballMove();
   renderCanvas();
   ballBoundaries();
@@ -186,12 +162,14 @@ function animate() {
 }
 
 // Start Game, Reset Everything
-function startGame() {
+function loadGame() {
   createCanvas();
   renderIntro();
   socket.emit('ready');
-  
-  paddleIndex = 0;
+}
+
+function startGame() {
+  paddleIndex = isReferee ? 0 : 1; // Paddle the current player is controlling
   window.requestAnimationFrame(animate);
   canvas.addEventListener('mousemove', (e) => {
     playerMoved = true;
@@ -202,14 +180,29 @@ function startGame() {
     if (paddleX[paddleIndex] > (width - paddleWidth)) {
       paddleX[paddleIndex] = width - paddleWidth;
     }
+    socket.emit('paddleMove', {
+      xPosition: paddleX[paddleIndex]
+    });
     // Hide Cursor
     canvas.style.cursor = 'none';
   });
 }
 
 // On Load
-startGame();
+loadGame();
 
 socket.on('connect', () => {
   console.log(`Connected as ${socket.id}`);
+});
+
+socket.on('startGame', (refereeId) => {
+  console.log(`The Referee Player is ${refereeId}`);
+
+  isReferee = socket.id === refereeId;
+  startGame();
+});
+
+socket.on('paddleMove', (paddleData) => {
+  const oponentPaddleIndex = 1 - paddleIndex;
+  paddleX[oponentPaddleIndex] = paddleData.xPosition;
 });
