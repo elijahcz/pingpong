@@ -23,12 +23,20 @@ io.on('connection', (socket) => {
         console.log(`Player ${socket.id} is Ready`);
         playersReadyCount++;
 
-        if(playersReadyCount === 2) {
+        if(playersReadyCount % 2 === 0) {
             io.emit('startGame', socket.id);
         }
     });
 
     socket.on('paddleMove', (paddleData) => {
         socket.broadcast.emit('paddleMove', paddleData);
+    });
+
+    socket.on('ballMove', (ballData) => {
+        socket.broadcast.emit('ballMove', ballData);
+    });
+
+    socket.on('disconnect', (reason) => {
+        console.log(`Client ${socket.id} disconnected: ${reason}`);
     });
 });
