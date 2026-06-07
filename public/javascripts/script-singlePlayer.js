@@ -2,6 +2,7 @@
 const { body } = document;
 const canvas = document.createElement('canvas');
 const context = canvas.getContext('2d');
+const socket = io('http://localhost:3000');
 
 
 const width = 500;
@@ -29,17 +30,17 @@ const ballRadius = 5;
 let speedY;
 let speedX;
 let trajectoryX;
-let computerSpeed;
+// let computerSpeed;
 
 // Change Mobile Settings
 if (isMobile.matches) {
   speedY = -2;
   speedX = speedY;
-  computerSpeed = 4;
+  // computerSpeed = 4;
 } else {
   speedY = -1;
   speedX = speedY;
-  computerSpeed = 3;
+  // computerSpeed = 3;
 }
 
 // Score
@@ -49,11 +50,22 @@ const winningScore = 7;
 let isGameOver = true;
 let isNewGame = true;
 
+
+function renderIntro() {
+  context.fillStyle = 'black';
+  context.fillRect(0, 0, width, height);
+
+  context.fillStyle = 'white';
+  context.font = "32px Courier New";
+  context.fillText = ("Waiting for opponent...", 20, (canvas.height / 2), 30);
+}
+
+
 // Render Everything on Canvas
 function renderCanvas() {
   // Canvas Background
-  context.fillStyle = 'black';
-  context.fillRect(0, 0, width, height);
+  // context.fillStyle = 'black';
+  // context.fillRect(0, 0, width, height);
 
   // Paddle Color
   context.fillStyle = 'white';
@@ -133,7 +145,7 @@ function ballBoundaries() {
         // Max Speed
         if (speedY < -5) {
           speedY = -5;
-          computerSpeed = 6;
+          // computerSpeed = 6;
         }
       }
       speedY = -speedY;
@@ -166,15 +178,15 @@ function ballBoundaries() {
 }
 
 // Computer Movement
-function computerAI() {
-  if (playerMoved) {
-    if (paddleTopX + paddleDiff < ballX) {
-      paddleTopX += computerSpeed;
-    } else {
-      paddleTopX -= computerSpeed;
-    }
-  }
-}
+// function computerAI() {
+//   if (playerMoved) {
+//     if (paddleTopX + paddleDiff < ballX) {
+//       paddleTopX += computerSpeed;
+//     } else {
+//       paddleTopX -= computerSpeed;
+//     }
+//   }
+// }
 
 function showGameOverEl(winner) {
   // Hide Canvas
@@ -210,26 +222,19 @@ function animate() {
   renderCanvas();
   ballMove();
   ballBoundaries();
-  computerAI();
+  // computerAI();
   gameOver();
   if(isGameOver === false) {
     window.requestAnimationFrame(animate);
   }
 }
 
-// Start Game, Reset Everything
 function startGame() {
-  if (isGameOver && !isNewGame) {
-    body.removeChild(gameOverEl);
-    canvas.hidden = false;
-  }
-  isGameOver = false;
-  isNewGame = false;
-  playerScore = 0;
-  computerScore = 0;
-  ballReset();
   createCanvas();
-  animate();
+  renderIntro();
+
+  paddleIndex = 0;
+  window.requestAnimationFrame(animate);
   canvas.addEventListener('mousemove', (e) => {
     // console.log(e.clientX);
     playerMoved = true;
@@ -243,8 +248,37 @@ function startGame() {
     }
     // Hide Cursor
     canvas.style.cursor = 'none';
-  });
+  });  
 }
+
+// // Start Game, Reset Everything
+// function startGame() {
+//   if (isGameOver && !isNewGame) {
+//     body.removeChild(gameOverEl);
+//     canvas.hidden = false;
+//   }
+//   isGameOver = false;
+//   isNewGame = false;
+//   playerScore = 0;
+//   computerScore = 0;
+//   ballReset();
+//   createCanvas();
+//   animate();
+//   canvas.addEventListener('mousemove', (e) => {
+//     // console.log(e.clientX);
+//     playerMoved = true;
+//     // Compensate for canvas being centered
+//     paddleBottomX = e.clientX - canvasPosition - paddleDiff;
+//     if (paddleBottomX < paddleDiff) {
+//       paddleBottomX = 0;
+//     }
+//     if (paddleBottomX > width - paddleWidth) {
+//       paddleBottomX = width - paddleWidth;
+//     }
+//     // Hide Cursor
+//     canvas.style.cursor = 'none';
+//   });
+// }
 
 // On Load
 startGame();
